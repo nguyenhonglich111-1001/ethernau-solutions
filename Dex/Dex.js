@@ -14,7 +14,7 @@ async function main() {
         2000
     );
     await approveTX.wait();
-    
+
     let fromAddress = await DEXContract.token1();
     let toAddress = await DEXContract.token2();
     let fromBalance, toBalance;
@@ -41,7 +41,7 @@ async function main() {
 
     transferFromValue = 10;
     console.log("Start");
-    while (fromBalance > 0) {
+    while (contractFromBalance > 0 && contractToBalance > 0) {
         if (transferFromValue > fromBalance) {
             transferFromValue = fromBalance;
         }
