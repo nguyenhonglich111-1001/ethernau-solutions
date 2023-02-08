@@ -1,4 +1,4 @@
-# Ethernaut Delegation solution
+# Ethernaut Dex solution
 ## Problem
 The goal of this level is for you to hack the basic DEX contract below and steal the funds by price manipulation.
 
